@@ -1,28 +1,20 @@
 import { useState } from "react";
+import emailjs from "@emailjs/browser";
 import Section from "../components/Section";
 import Icon from "../components/Icon";
 
-// ✏️ Updated: your real contact details
+// ✏️ Paste your EmailJS credentials here
+const EMAILJS_SERVICE_ID  = "service_inmsaaj";
+const EMAILJS_TEMPLATE_ID = "template_6xs7y9k";
+const EMAILJS_PUBLIC_KEY  = "V13KBrsvPb3xWZrEc";
+
 const CONTACT_LINKS = [
-  { 
-    label: "Email",       
-    value: "abdul951371@gmail.com",      
-    href: "mailto:abdul951371@gmail.com" 
-  },
-  { 
-    label: "LinkedIn",    
-    value: "/in/abdul-malik-280b55309",      
-    href: "https://www.linkedin.com/in/abdul-malik-280b55309" 
-  },
-  { 
-    label: "GitHub",      
-    value: "@fzzz-dev",        
-    href: "https://github.com/fzzz-dev" 
-  },
+  { label: "Email",    value: "abdul951371@gmail.com",           href: "mailto:abdul951371@gmail.com" },
+  { label: "LinkedIn", value: "/in/abdul-malik-280b55309",       href: "https://www.linkedin.com/in/abdul-malik-280b55309" },
+  { label: "GitHub",   value: "@fzzz-dev",                       href: "https://github.com/fzzz-dev" },
 ];
 
-/* ── Styled input / textarea ── */
-function Input({ label, type = "text", placeholder, multiline }) {
+function Input({ label, type = "text", placeholder, multiline, name, value, onChange }) {
   const [focused, setFocused] = useState(false);
 
   const baseStyle = {
@@ -52,6 +44,9 @@ function Input({ label, type = "text", placeholder, multiline }) {
       {multiline ? (
         <textarea
           rows={5}
+          name={name}
+          value={value}
+          onChange={onChange}
           placeholder={placeholder}
           style={baseStyle}
           onFocus={() => setFocused(true)}
@@ -60,6 +55,9 @@ function Input({ label, type = "text", placeholder, multiline }) {
       ) : (
         <input
           type={type}
+          name={name}
+          value={value}
+          onChange={onChange}
           placeholder={placeholder}
           style={baseStyle}
           onFocus={() => setFocused(true)}
@@ -71,10 +69,47 @@ function Input({ label, type = "text", placeholder, multiline }) {
 }
 
 export default function Contact() {
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    alert("Message sent! (Connect EmailJS or Formspree to make it work)");
+  const [formData, setFormData] = useState({
+    from_name: "", from_email: "", subject: "", message: "",
+  });
+  const [status, setStatus] = useState("idle"); // "idle" | "sending" | "sent" | "error"
+
+  const handleChange = (e) => {
+    setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
   };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setStatus("sending");
+
+    try {
+      await emailjs.send(
+        EMAILJS_SERVICE_ID,
+        EMAILJS_TEMPLATE_ID,
+        formData,
+        EMAILJS_PUBLIC_KEY
+      );
+      setStatus("sent");
+      setFormData({ from_name: "", from_email: "", subject: "", message: "" });
+    } catch (err) {
+      console.error("EmailJS error:", err);
+      setStatus("error");
+    }
+  };
+
+  const buttonLabel = {
+    idle:    "Send Message",
+    sending: "Sending...",
+    sent:    "Message Sent ✓",
+    error:   "Failed — Retry",
+  }[status];
+
+  const buttonColor = {
+    idle:    {},
+    sending: { opacity: 0.6, cursor: "not-allowed" },
+    sent:    { background: "rgba(74,222,128,0.15)", borderColor: "#4ade80", color: "#4ade80" },
+    error:   { background: "rgba(248,113,113,0.15)", borderColor: "#f87171", color: "#f87171" },
+  }[status];
 
   return (
     <Section
@@ -86,17 +121,12 @@ export default function Contact() {
         Get In Touch
       </h2>
 
-      {/* ✏️ Updated intro text */}
       <p style={{
-        color: "var(--text-muted)",
-        fontSize: "15px",
-        fontWeight: 300,
-        maxWidth: 500,
-        marginBottom: 48,
-        lineHeight: 1.8
+        color: "var(--text-muted)", fontSize: "15px", fontWeight: 300,
+        maxWidth: 500, marginBottom: 48, lineHeight: 1.8
       }}>
-        I’m always open to opportunities, collaborations, or just a good tech conversation.
-        Feel free to reach out — I’ll get back to you as soon as possible.
+        I'm always open to opportunities, collaborations, or just a good tech conversation.
+        Feel free to reach out — I'll get back to you as soon as possible.
       </p>
 
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1.5fr", gap: 40, maxWidth: 900 }}>
@@ -105,43 +135,27 @@ export default function Contact() {
         <div>
           <div style={{ marginBottom: 32 }}>
             {CONTACT_LINKS.map(({ label, value, href }) => (
-              <div
-                key={label}
-                style={{
-                  marginBottom: 20,
-                  paddingBottom: 20,
-                  borderBottom: "1px solid rgba(60,60,60,0.4)"
-                }}
-              >
+              <div key={label} style={{
+                marginBottom: 20, paddingBottom: 20,
+                borderBottom: "1px solid rgba(60,60,60,0.4)"
+              }}>
                 <div style={{
-                  fontFamily: "var(--font-mono)",
-                  fontSize: "10px",
-                  letterSpacing: "2px",
-                  color: "var(--chrome-3)",
-                  marginBottom: 6,
-                  textTransform: "uppercase"
+                  fontFamily: "var(--font-mono)", fontSize: "10px",
+                  letterSpacing: "2px", color: "var(--chrome-3)",
+                  marginBottom: 6, textTransform: "uppercase"
                 }}>
                   {label}
                 </div>
-
-                <a
-                  href={href}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  style={{
-                    fontFamily: "var(--font-body)",
-                    fontSize: "14px",
-                    color: "var(--chrome-1)",
-                    textDecoration: "none"
-                  }}
-                >
+                <a href={href} target="_blank" rel="noopener noreferrer" style={{
+                  fontFamily: "var(--font-body)", fontSize: "14px",
+                  color: "var(--chrome-1)", textDecoration: "none"
+                }}>
                   {value}
                 </a>
               </div>
             ))}
           </div>
 
-          {/* Availability badge */}
           <div className="glass-card" style={{ padding: "20px 24px" }}>
             <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8 }}>
               <div style={{
@@ -149,20 +163,15 @@ export default function Contact() {
                 background: "#4ade80", boxShadow: "0 0 8px #4ade80"
               }} />
               <span style={{
-                fontFamily: "var(--font-mono)",
-                fontSize: "11px",
-                color: "var(--chrome-2)",
-                letterSpacing: "1px"
+                fontFamily: "var(--font-mono)", fontSize: "11px",
+                color: "var(--chrome-2)", letterSpacing: "1px"
               }}>
                 AVAILABLE FOR OPPORTUNITIES
               </span>
             </div>
-
             <p style={{
-              fontFamily: "var(--font-body)",
-              fontSize: "13px",
-              color: "var(--text-muted)",
-              fontWeight: 300
+              fontFamily: "var(--font-body)", fontSize: "13px",
+              color: "var(--text-muted)", fontWeight: 300
             }}>
               Open to internships, freelance work, and collaborations in AI, Web Development, and UI/UX.
             </p>
@@ -172,26 +181,26 @@ export default function Contact() {
         {/* ── Right: form ── */}
         <div className="glass-card metal-border" style={{ padding: 32 }}>
           <form onSubmit={handleSubmit}>
-            <Input label="Your Name" placeholder="Your Name" />
-            <Input label="Email Address" type="email" placeholder="your@email.com" />
-            <Input label="Subject" placeholder="Subject..." />
-            <Input label="Message" placeholder="Write your message..." multiline />
+            <Input label="Your Name"      placeholder="Your Name"            name="from_name"  value={formData.from_name}  onChange={handleChange} />
+            <Input label="Email Address"  placeholder="your@email.com"       name="from_email" value={formData.from_email} onChange={handleChange} type="email" />
+            <Input label="Subject"        placeholder="Subject..."            name="subject"    value={formData.subject}    onChange={handleChange} />
+            <Input label="Message"        placeholder="Write your message..." name="message"    value={formData.message}    onChange={handleChange} multiline />
 
             <button
               type="submit"
+              disabled={status === "sending"}
               className="btn-chrome"
               style={{
-                width: "100%",
-                justifyContent: "center",
-                padding: "14px",
-                fontSize: "12px",
-                letterSpacing: "2px"
+                width: "100%", justifyContent: "center",
+                padding: "14px", fontSize: "12px", letterSpacing: "2px",
+                transition: "all 0.3s ease", ...buttonColor
               }}
             >
-              <Icon name="send" size={14} /> Send Message
+              <Icon name="send" size={14} /> {buttonLabel}
             </button>
           </form>
         </div>
+
       </div>
     </Section>
   );

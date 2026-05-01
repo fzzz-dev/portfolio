@@ -36,7 +36,7 @@ function Footer() {
         className="chrome-text"
         style={{ fontFamily: "var(--font-display)", fontSize: "13px", fontWeight: 700, letterSpacing: "3px" }}
       >
-        YOUR NAME {/* ✏️ Edit */}
+        ABDUL MALIK {/* ✏️ Edit */}
       </span>
 
       <span style={{ fontFamily: "var(--font-mono)", fontSize: "11px", color: "var(--chrome-3)", letterSpacing: "1px" }}>
